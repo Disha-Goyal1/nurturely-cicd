@@ -20,7 +20,9 @@ export function getAccounts() {
 
 export function saveAccount(account) {
   const accounts = readAccounts();
-  const index = accounts.findIndex(item => item.id === account.id);
+  const index = accounts.findIndex(
+    item => item.id === account.id
+  );
 
   if (index >= 0) {
     accounts[index] = account;
@@ -73,7 +75,9 @@ export async function hashPassword(password, salt) {
 }
 
 export function getAccount(accountId) {
-  return readAccounts().find(account => account.id === accountId) ?? null;
+  return readAccounts().find(
+    account => account.id === accountId
+  ) ?? null;
 }
 
 export function updateAccount(account) {
