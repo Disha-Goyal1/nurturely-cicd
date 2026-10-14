@@ -38,7 +38,7 @@ export function makeId() {
     return globalThis.crypto.randomUUID();
   }
 
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return Date.now() + '-' + Math.random().toString(36).slice(2);
 }
 
 export async function hashPassword(password, salt) {
@@ -92,7 +92,7 @@ export function updateAccount(account) {
 
 export function readList(accountId, collection) {
   try {
-    const key = `nurturely:${accountId}:${collection}`;
+    const key = 'nurturely:' + accountId + ':' + collection;
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : [];
   } catch {
@@ -101,7 +101,7 @@ export function readList(accountId, collection) {
 }
 
 export function writeList(accountId, collection, items) {
-  const key = `nurturely:${accountId}:${collection}`;
+  const key = 'nurturely:' + accountId + ':' + collection;
   localStorage.setItem(key, JSON.stringify(items));
 }
 ```
