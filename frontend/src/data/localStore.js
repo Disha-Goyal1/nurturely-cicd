@@ -1,26 +1,20 @@
-<<<<<<< HEAD
-function readJson(key, fallback) {
-  const value = localStorage.getItem(key);
-  if (value === null) return fallback;
-=======
-```javascript
+
 const ACCOUNTS_KEY = 'nurturely:accounts';
 
-function readAccounts() {
->>>>>>> 93f77196d6687112d32d86a15199e6848872b211
+function readJson(key, fallback) {
   try {
-    const stored = localStorage.getItem(ACCOUNTS_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : JSON.parse(value);
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-<<<<<<< HEAD
-export function readList(accountId, collection) {
-  return readJson(`nurturely:${accountId}:${collection}`, []);
+function readAccounts() {
+  const accounts = readJson(ACCOUNTS_KEY, []);
+  return Array.isArray(accounts) ? accounts : [];
 }
-=======
+
 function saveAccounts(accounts) {
   localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 }
@@ -40,7 +34,6 @@ export function saveAccount(account) {
   } else {
     accounts.push(account);
   }
->>>>>>> 93f77196d6687112d32d86a15199e6848872b211
 
   saveAccounts(accounts);
 }
@@ -52,8 +45,6 @@ export function makeId() {
 
   return Date.now() + '-' + Math.random().toString(36).slice(2);
 }
-<<<<<<< HEAD
-=======
 
 export async function hashPassword(password, salt) {
   if (!globalThis.crypto?.subtle) {
@@ -105,18 +96,13 @@ export function updateAccount(account) {
 }
 
 export function readList(accountId, collection) {
-  try {
-    const key = 'nurturely:' + accountId + ':' + collection;
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
+  return readJson(
+    `nurturely:${accountId}:${collection}`,
+    []
+  );
 }
 
 export function writeList(accountId, collection, items) {
-  const key = 'nurturely:' + accountId + ':' + collection;
+  const key = `nurturely:${accountId}:${collection}`;
   localStorage.setItem(key, JSON.stringify(items));
 }
-```
->>>>>>> 93f77196d6687112d32d86a15199e6848872b211
