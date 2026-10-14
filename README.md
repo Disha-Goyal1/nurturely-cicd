@@ -33,3 +33,4 @@ Deploy the generated `frontend/dist` folder to any static hosting provider. For 
 - Subscription plan selection without billing
 
 All records stay in the current browser profile and do not sync between devices or users. Browser storage is not encrypted, and sign-in is not server-protected authentication. Do not store sensitive child, health, identity, or payment information here. Directory profiles are samples, requests are not delivered to providers, and the guided reflection tool uses prewritten responses rather than AI or professional advice. SOS requests are saved in this browser; use its call/text links to contact a trusted person directly. It cannot alert a caregiver or emergency services.
+Testing Jenkins CI/CD webhook
