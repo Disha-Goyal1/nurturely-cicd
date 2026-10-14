@@ -55,6 +55,7 @@ The supplied Docker Compose stack serves the built website through Nginx on port
 5. Create or run the Jenkins Pipeline job using this repository's `Jenkinsfile`. It installs dependencies, builds the frontend with those Vite variables, builds and starts the Nginx container, and checks the health and login page routes.
 6. Configure the Supabase Auth Site URL and allowed redirect URL for `http://13.211.67.223/login`, then visit `http://13.211.67.223`.
 
+<<<<<<< HEAD
 For a manual Docker Compose build, export the same two variables in the shell before `docker compose up -d --build`, or put them in an untracked root `.env` based on `.env.example`. The deployment build requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; neither should contain a service-role secret.
 
 ## Transport security
@@ -62,3 +63,7 @@ For a manual Docker Compose build, export the same two variables in the shell be
 Plain HTTP does **not** encrypt passwords, auth tokens, or session traffic in transit. HTTPS is required before collecting real credentials or sensitive information. Use HTTP only for a controlled demo with test accounts.
 
 Family/child profiles and other non-auth app records still remain in each browser and are not synced to Supabase.
+=======
+All records stay in the current browser profile and do not sync between devices or users. Browser storage is not encrypted, and sign-in is not server-protected authentication. Do not store sensitive child, health, identity, or payment information here. Directory profiles are samples, requests are not delivered to providers, and the guided reflection tool uses prewritten responses rather than AI or professional advice. SOS requests are saved in this browser; use its call/text links to contact a trusted person directly. It cannot alert a caregiver or emergency services.
+Testing Jenkins CI/CD webhook
+>>>>>>> 93f77196d6687112d32d86a15199e6848872b211
