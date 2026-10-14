@@ -1,75 +1,97 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  getAccount,
-  getActiveAccountId,
-  getAccounts,
-  hashPassword,
-  makeId,
-  saveAccounts,
-  setActiveAccountId,
-  updateAccount,
-} from '../data/localStore.js';
+  getCurrentSession,
+  getSupabaseClient,
+  loginAccount,
+  logoutAccount,
+  publicProfile,
+  registerAccount,
+  updateAccountProfile,
+} from './supabaseAuth.js';
 
 const AuthContext = createContext(null);
 
-function publicProfile(account) {
-  if (!account) return null;
-  const { id, name, email, role } = account;
-  return { id, name, email, role };
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => publicProfile(getAccount(getActiveAccountId())));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
 
-  async function register({ name, email, password, role }) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const accounts = getAccounts();
-    if (accounts.some((account) => account.email === normalizedEmail)) {
-      throw new Error('An account with this email already exists in this browser. Please sign in.');
+  useEffect(() => {
+    let active = true;
+    let authEventReceived = false;
+    let subscription;
+
+    try {
+      const client = getSupabaseClient();
+      ({ data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
+        authEventReceived = true;
+        if (active) {
+          setUser(publicProfile(session?.user));
+          setAuthError('');
+          setLoading(false);
+        }
+      }));
+      getCurrentSession()
+        .then((session) => {
+          if (active && !authEventReceived) setUser(publicProfile(session?.user));
+        })
+        .catch((error) => {
+          if (active) setAuthError(error.message);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    } catch (error) {
+      setAuthError(error.message);
+      setLoading(false);
     }
-    const salt = makeId();
-    const account = {
-      id: makeId(),
-      name: name.trim(),
-      email: normalizedEmail,
-      role,
-      salt,
-      passwordHash: await hashPassword(password, salt),
+
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
     };
-    saveAccounts([...accounts, account]);
-    setActiveAccountId(account.id);
-    setUser(publicProfile(account));
-    return publicProfile(account);
+  }, []);
+
+  async function register(details) {
+    const result = await registerAccount(details);
+    setAuthError('');
+    if (result.authenticated) setUser(result.user);
+    return result;
   }
 
-  async function login({ email, password }) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const account = getAccounts().find((entry) => entry.email === normalizedEmail);
-    if (!account || await hashPassword(password, account.salt) !== account.passwordHash) {
-      throw new Error('We couldn’t find a matching local account. Create an account in this browser first.');
-    }
-    setActiveAccountId(account.id);
-    setUser(publicProfile(account));
-    return publicProfile(account);
+  async function login(credentials) {
+    const account = await loginAccount(credentials);
+    setAuthError('');
+    setUser(account);
+    return account;
   }
 
-  function updateProfile(profile) {
-    const updatedUser = { ...user, ...profile };
-    updateAccount(updatedUser);
+  async function updateProfile(profile) {
+    const updatedUser = await updateAccountProfile(profile);
     setUser(updatedUser);
+    return updatedUser;
+  }
+
+  async function logout() {
+    try {
+      await logoutAccount();
+      setAuthError('');
+      setUser(null);
+    } catch (error) {
+      setAuthError(error.message);
+      throw error;
+    }
   }
 
   const value = useMemo(() => ({
     user,
-    loading: false,
+    loading,
+    authError,
     login,
     register,
     updateProfile,
-    logout: () => {
-      setActiveAccountId(null);
-      setUser(null);
-    },
-  }), [user]);
+    logout,
+  }), [user, loading, authError]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

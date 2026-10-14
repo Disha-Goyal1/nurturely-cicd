@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 
@@ -11,13 +11,18 @@ const roles = [
 export default function AuthPage({ mode }) {
   const isRegister = mode === 'register';
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, authError } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'parent' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (authError) setError(authError);
+  }, [authError]);
+
   function update(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    setError('');
   }
 
   async function submit(event) {
@@ -26,9 +31,15 @@ export default function AuthPage({ mode }) {
     setSubmitting(true);
     try {
       const { name, email, password, role } = form;
-      await (isRegister
-        ? register({ name, email, password, role })
-        : login({ email, password }));
+      if (isRegister) {
+        const result = await register({ name, email, password, role });
+        if (!result.authenticated) {
+          setError('Supabase did not return an active session. Check the Supabase Auth settings, then try signing in.');
+          return;
+        }
+      } else {
+        await login({ email, password });
+      }
       navigate('/dashboard', { replace: true });
     } catch (requestError) {
       setError(requestError.message);
@@ -71,8 +82,6 @@ export default function AuthPage({ mode }) {
             <h2>{isRegister ? 'Create your account' : 'Sign in to your space'}</h2>
             <p>{isRegister ? 'Join a thoughtful community built around family wellbeing.' : 'A calmer day is just a sign-in away.'}</p>
           </div>
-          <p className="local-notice">Accounts are stored in this browser and do not sync to other devices. This site does not provide server-protected authentication; do not reuse an important password or enter sensitive information.</p>
-
           <form className="auth-form" onSubmit={submit}>
             {isRegister && (
               <label className="form-label">

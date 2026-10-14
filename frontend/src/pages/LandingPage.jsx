@@ -77,7 +77,7 @@ export default function LandingPage() {
           <div className="floating-note note-bottom"><span className="note-icon sage-bg"><HeartHandshake size={16} /></span><span><b>Trusted care</b><small>When life happens</small></span></div>
         </div>
       </section>
-      <p className="local-notice landing-local-notice">Your saved information stays in this browser. Sample profiles and guided reflections are not connected to real services.</p>
+      <p className="local-notice landing-local-notice">Family profiles and saved entries stay in this browser; account details are stored on the app server. Sample profiles and guided reflections are not connected to real services.</p>
 
       <section className="feature-section" id="features">
         <div className="section-heading">
@@ -112,7 +112,7 @@ export default function LandingPage() {
 
       <section className="privacy-banner">
         <span className="privacy-icon"><LockKeyhole size={20} aria-hidden="true" /></span>
-        <div><h2>Your family’s story belongs to you.</h2><p>Information is stored in this browser only. It is not encrypted, synced, or shared with real caregivers or professionals.</p></div>
+        <div><h2>Your family’s story belongs to you.</h2><p>Family profiles and saved entries are stored in this browser only. They are not encrypted, synced, or shared with real caregivers or professionals.</p></div>
         <Link className="inline-link" to="/register">Join Nurturely <ArrowRight size={16} /></Link>
       </section>
 

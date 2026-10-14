@@ -24,7 +24,7 @@ const sectionDetails = {
   caregivers: ['Find childcare', 'Explore sample caregiver profiles and save a local care request.', 'Directory'],
   bookings: ['My bookings', 'Review and update care requests saved in this browser.', 'Bookings'],
   subscription: ['Subscription', 'Choose a plan to see how it would look. No payment is collected or subscription started.', 'Subscription'],
-  settings: ['Settings', 'Update the local profile used in this browser.', 'Settings'],
+  settings: ['Settings', 'Update the account profile stored on the app server.', 'Settings'],
   sos: ['SOS childcare', 'Save a request, then tap to call or text a trusted person. This page cannot dispatch help.', 'SOS childcare'],
   requests: ['Care requests', 'Review requests saved to this browser profile.', 'Requests'],
   'trust-profile': ['Trust profile', 'Keep a local caregiver introduction. No identity checks or TrustScore verification are performed.', 'Trust profile'],
@@ -164,7 +164,7 @@ export default function SectionPage() {
     setForm((current) => ({ ...current, childId: '', date: '', time: '', location: '', detail: '' }));
   }
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     setNotice('');
     if (section === 'settings') {
@@ -175,8 +175,8 @@ export default function SectionPage() {
         return;
       }
       try {
-        updateProfile({ name, email });
-        setNotice('Your local profile was updated.');
+        await updateProfile({ name, email });
+        setNotice('Your server-stored profile was updated.');
       } catch (saveError) {
         setError(`Could not update your profile: ${saveError.message}`);
       }

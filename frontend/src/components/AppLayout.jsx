@@ -59,7 +59,7 @@ function Wordmark() {
 }
 
 export function AppLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, authError } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -72,6 +72,14 @@ export function AppLayout() {
   function closeMenus() {
     setMobileMenuOpen(false);
     setProfileOpen(false);
+  }
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      // The authentication context exposes the failure in the open profile menu.
+    }
   }
 
   return (
@@ -158,7 +166,8 @@ export function AppLayout() {
               {profileOpen && (
                 <div className="topbar-popover" role="menu">
                   <p className="truncate text-sm font-semibold">{user.email}</p>
-                  <button className="mt-3 w-full rounded-lg px-2 py-2 text-left text-sm text-ink hover:bg-page focus-visible:outline focus-visible:outline-2 focus-visible:outline-sage" onClick={logout} role="menuitem" type="button">
+                  {authError && <p className="auth-error mt-2" role="alert">{authError}</p>}
+                  <button className="mt-3 w-full rounded-lg px-2 py-2 text-left text-sm text-ink hover:bg-page focus-visible:outline focus-visible:outline-2 focus-visible:outline-sage" onClick={handleLogout} role="menuitem" type="button">
                     Sign out
                   </button>
                 </div>

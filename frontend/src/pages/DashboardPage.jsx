@@ -61,7 +61,7 @@ export default function DashboardPage() {
         <div className="welcome-panel-copy">
           <span className="welcome-overline"><span className="welcome-dot" /> YOUR NURTURELY SPACE</span>
           <h2>{details.focus}</h2>
-          <p>Works without a server. Your account and saved entries stay in this browser and do not sync to other devices.</p>
+          <p>Your account profile is stored on the app server; family profiles and saved entries stay in this browser and do not sync to other devices.</p>
         </div>
         <div className="welcome-art" aria-hidden="true"><span className="welcome-orb" /><span className="welcome-leaf leaf-a" /><span className="welcome-leaf leaf-b" /><span className="welcome-leaf leaf-c" /><span className="welcome-sun" /></div>
       </section>
