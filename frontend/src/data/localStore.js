@@ -1,6 +1,10 @@
 function readJson(key, fallback) {
-  const value = localStorage.getItem(key);
-  return value === null ? fallback : JSON.parse(value);
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : JSON.parse(value);
+  } catch {
+    return fallback;
+  }
 }
 
 export function readList(accountId, collection) {

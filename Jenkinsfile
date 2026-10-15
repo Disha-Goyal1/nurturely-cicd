@@ -1,38 +1,14 @@
+
 pipeline {
     agent any
 
-<<<<<<< HEAD
-    environment {
-        VITE_SUPABASE_URL = credentials('nurturely-supabase-url')
-        VITE_SUPABASE_PUBLISHABLE_KEY = credentials('nurturely-supabase-publishable-key')
-    }
-
-    stages {
-        stage('Build frontend') {
-            steps {
-                dir('frontend') {
-                    sh '''
-                        npm ci
-                        npm run build
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh '''
-                    docker compose up -d --build
-                    curl --fail --retry 12 --retry-delay 5 http://127.0.0.1/health
-                    curl --fail --retry 3 http://127.0.0.1/login
-=======
     options {
         timestamps()
     }
 
     environment {
-        IMAGE_NAME = 'nurturely-frontend'
-        CONTAINER_NAME = 'nurturely-frontend'
+        VITE_SUPABASE_URL = credentials('nurturely-supabase-url')
+        VITE_SUPABASE_PUBLISHABLE_KEY = credentials('nurturely-supabase-publishable-key')
     }
 
     stages {
@@ -42,26 +18,67 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Validate Project Files') {
             steps {
-                sh 'docker build -t nurturely-frontend:${BUILD_NUMBER} -f frontend/Dockerfile frontend'
+                sh '''
+                    set -eu
+                    set +x
+                    test -f compose.yaml
+                    test -f frontend/Dockerfile
+                    test -f Jenkinsfile
+                    test -n "$VITE_SUPABASE_URL"
+                    test -n "$VITE_SUPABASE_PUBLISHABLE_KEY"
+                    docker --version
+                    docker compose version
+                    docker info --format 'Docker daemon is available (server {{.ServerVersion}}).'
+                    docker compose config --quiet
+                '''
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                        set -eu
+                        set +x
+                        npm ci
+                        npm run build
+                    '''
+                }
+            }
+        }
+
+        stage('Build Images') {
             steps {
                 sh '''
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-
-                    docker run -d \
-                        --name ${CONTAINER_NAME} \
-                        --restart unless-stopped \
-                        -p 80:80 \
-                        ${IMAGE_NAME}:${BUILD_NUMBER}
->>>>>>> 93f77196d6687112d32d86a15199e6848872b211
+                    set -eu
+                    set +x
+                    docker compose build frontend
                 '''
             }
+        }
+
+        stage('Deploy and Verify') {
+            steps {
+                sh '''
+                    set -eu
+                    set +x
+                    docker compose up -d --no-build --wait
+                    docker compose ps
+                    curl --fail --retry 12 --retry-delay 5 http://127.0.0.1/health
+                    curl --fail --retry 3 http://127.0.0.1/login
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Nurturely pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check the stage logs in Console Output.'
         }
     }
 }

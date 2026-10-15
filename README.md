@@ -1,30 +1,24 @@
-# Nurturely
+# Nurturely: AI Family Ecosystem
 
-Nurturely is a React app using Supabase Auth for account registration, login, session persistence, profile updates, and logout. Family profiles and other app records remain browser-local.
+Nurturely is a React/Vite application. Supabase Auth handles email/password registration, login, and sessions. This repository's current deployment runs the frontend only; the `backend/` directory contains empty module placeholders and is not a runnable API.
 
-## Configure Supabase
+## Current application limits
 
-1. In Supabase, use the project's **Project URL** and **publishable key**. Never use a `service_role` key in the frontend.
-2. In **Authentication → URL Configuration**, set the Site URL to the deployed site URL and allow the exact login redirect URL (for example, `http://13.211.67.223/login`) and your local URL (for example, `http://localhost:5173/login`).
-3. In the repository's `frontend` directory, create an untracked `.env`:
+- The frontend calls Supabase Auth directly and has no Nurturely API client or backend URL configuration.
+- Family/child profiles, conversations, requests, and other app records use browser `localStorage`. They are not shared between devices, backed up to a server, or protected by server authorization. Do not store sensitive child, health, identity, or payment information in this demo.
+- The AI reflection UI uses prewritten local responses, not a remote AI backend. No tracked code reads `backend/.env` or uses an `OPENAI_API_KEY`.
+- There is no Supabase database query in the current app; database RLS policies cannot be assessed from this repository.
 
-   ```dotenv
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
-   ```
+## Supabase configuration
 
-   These are public browser configuration values, not an authorization secret. The Supabase publishable key is intended for client apps; enforce access with Supabase Auth and Row Level Security for any database policies.
-4. For the development/demo setup, disable email confirmation in Supabase Auth settings. Registration signs the user in when Supabase returns an active session; if it does not return a session, the app shows an actionable error instead of claiming registration succeeded.
+The Vite build reads:
 
-The SDK persists and refreshes auth sessions. Existing browser-only demo accounts are not migrated; register with Supabase on the new build.
+- `VITE_SUPABASE_URL`: the HTTPS Project URL from Supabase API settings.
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: the project's browser publishable key.
 
-## Services and data persistence
+The publishable key is intended to be visible to browser users. Never use a Supabase secret key, legacy `service_role` key, database password, or private token in a `VITE_` variable. Registration receives a session only when Supabase Auth's email-confirmation settings permit immediate sign-in. Set the Supabase Auth Site URL and allowed redirect URLs for the deployed frontend and local development.
 
-The current Compose stack contains only the frontend. Supabase Auth handles registration, login, and sessions directly from the browser; the `backend` directory is an empty module scaffold, not a runnable API. No PostgreSQL service or `POSTGRES_PASSWORD` is required. Other family/app records remain in browser `localStorage`, not in a server database or Docker volume.
-
-## Run locally
-
-Requirements: Node.js 22 or newer.
+For local Vite development, put those variables in the ignored `frontend/.env`:
 
 ```powershell
 cd frontend
@@ -32,38 +26,37 @@ npm ci
 npm run dev
 ```
 
-Open the Vite URL printed in the terminal, normally `http://localhost:5173`.
-
-## Build
+Build locally with:
 
 ```powershell
-cd frontend
-npm ci
-npm run build
+npm --prefix frontend ci
+npm --prefix frontend run build
 ```
 
-## Deploy through Jenkins to EC2
+## Jenkins and AWS EC2 deployment
 
-The supplied Docker Compose stack serves the built website through Nginx on port **80**. Jenkins remains on its existing port **8080**. The static frontend sends Supabase Auth requests directly to the configured Supabase Project URL; Nginx provides the SPA fallback for page refreshes such as `/dashboard`.
+The Jenkins pipeline uses the GitHub repository configured by the Jenkins job and expects branch `main`. Configure the job to check out `https://github.com/Disha-Goyal1/nurturely-cicd.git`, branch `main`, and use this repository's `Jenkinsfile`.
 
-1. Configure the Jenkins Pipeline job to use `https://github.com/Disha-Goyal1/nurturely-parenting-app.git` and branch `main` (or confirm the Multibranch Pipeline discovers that repository and branch). The `Jenkinsfile` uses Jenkins' `scm` checkout; the repository and branch are selected by the job configuration.
-2. On the EC2 host (or the machine running the Jenkins deployment agent), install Docker Engine and the Docker Compose plugin. Ensure Jenkins can run Docker Compose.
-3. Allow inbound TCP **port 80** in the EC2 security group. Keep Jenkins on port **8080**.
-4. In Jenkins, create two **Secret text** credentials:
-   - `nurturely-supabase-url` — the Supabase Project URL.
-   - `nurturely-supabase-publishable-key` — the Supabase publishable key, not a `service_role` key.
-5. Create or run the Jenkins Pipeline job using this repository's `Jenkinsfile`. It installs dependencies, builds the frontend with those Vite variables, builds and starts the Nginx container, and checks the health and login page routes.
-6. Configure the Supabase Auth Site URL and allowed redirect URL for `http://13.211.67.223/login`, then visit `http://13.211.67.223`.
+The Jenkins agent must have Docker Engine and the Docker Compose v2 plugin available to the Jenkins service account, with permission to access the Docker daemon. The pipeline runs `docker compose version` and `docker info` before building. If either fails, fix the actual Jenkins agent's Docker/Compose installation or access rather than changing Supabase keys.
 
-<<<<<<< HEAD
-For a manual Docker Compose build, export the same two variables in the shell before `docker compose up -d --build`, or put them in an untracked root `.env` based on `.env.example`. The deployment build requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; neither should contain a service-role secret.
+Create Jenkins Secret Text credentials with these IDs:
 
-## Transport security
+- `nurturely-supabase-url` — value for `VITE_SUPABASE_URL`.
+- `nurturely-supabase-publishable-key` — value for `VITE_SUPABASE_PUBLISHABLE_KEY`.
 
-Plain HTTP does **not** encrypt passwords, auth tokens, or session traffic in transit. HTTPS is required before collecting real credentials or sensitive information. Use HTTP only for a controlled demo with test accounts.
+These are injected into the build environment and Compose build arguments. The publishable key is public client configuration, not a privileged secret. Never configure a service-role key in Jenkins for a frontend build.
 
-Family/child profiles and other non-auth app records still remain in each browser and are not synced to Supabase.
-=======
-All records stay in the current browser profile and do not sync between devices or users. Browser storage is not encrypted, and sign-in is not server-protected authentication. Do not store sensitive child, health, identity, or payment information here. Directory profiles are samples, requests are not delivered to providers, and the guided reflection tool uses prewritten responses rather than AI or professional advice. SOS requests are saved in this browser; use its call/text links to contact a trusted person directly. It cannot alert a caregiver or emergency services.
-Testing Jenkins CI/CD webhook
->>>>>>> 93f77196d6687112d32d86a15199e6848872b211
+The Compose service builds the Vite app with the two variables, serves it through Nginx over HTTP port 80, and uses `/health` as its container health check. Nginx falls back to `index.html` for client-side routes such as `/dashboard`. Open inbound TCP port 80 in the EC2 security group; do not expose the Vite development server or a database. Plain HTTP does not encrypt credentials or tokens; use HTTPS before collecting real credentials or sensitive information.
+
+For local Compose validation, the repository-root Compose file does not automatically load `frontend/.env`; pass it explicitly:
+
+```powershell
+docker compose --env-file frontend/.env config --quiet
+docker compose --env-file frontend/.env build frontend
+```
+
+These commands validate and build but do not start containers. Do not run `docker compose up` against a production host without authorization.
+
+## Backend deployment status
+
+There is no backend service to build or deploy yet: no backend `package.json`, server entry point, routes, database integration, tests, Dockerfile, or health endpoint exists. The current frontend does not call a backend, so it cannot be described as connected to one. Implement and test backend functionality before adding a backend Compose service or claiming a full-stack deployment.
