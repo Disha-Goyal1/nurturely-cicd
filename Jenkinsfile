@@ -6,10 +6,11 @@ pipeline {
         timestamps()
     }
 
-    environment {
-        VITE_SUPABASE_URL = credentials('nurturely-supabase-url')
-        VITE_SUPABASE_PUBLISHABLE_KEY = credentials('nurturely-supabase-publishable-key')
-    }
+ environment {
+    PATH+NODE22 = '/usr/local/node22/bin'
+    VITE_SUPABASE_URL = credentials('nurturely-supabase-url')
+    VITE_SUPABASE_PUBLISHABLE_KEY = credentials('nurturely-supabase-publishable-key')
+}
 
     stages {
         stage('Checkout') {
