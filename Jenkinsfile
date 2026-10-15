@@ -6,8 +6,8 @@ pipeline {
         timestamps()
     }
 
- environment {
-    PATH+NODE22 = '/usr/local/node22/bin'
+environment {
+    PATH = "/usr/local/node22/bin:${env.PATH}"
     VITE_SUPABASE_URL = credentials('nurturely-supabase-url')
     VITE_SUPABASE_PUBLISHABLE_KEY = credentials('nurturely-supabase-publishable-key')
 }
